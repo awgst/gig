@@ -19,8 +19,8 @@ var rootCommand = &cobra.Command{
 / /_/ // // /_/ /  
 \____/___/\____/   
 
-Help faster Go project development
-More informations --> https://github.com/awgst/gig`,
+🚀 Help faster Go project development
+❔ More informations --> https://github.com/awgst/gig`,
 }
 
 func Execute() {
