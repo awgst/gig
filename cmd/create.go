@@ -134,6 +134,7 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 ❔ More informations --> https://github.com/awgst/gig`)
 }
 
+// Generate docker compose file
 func generateDockerComposeFile(projectName, database string) error {
 	filename := "docker-compose.yml"
 
@@ -195,6 +196,7 @@ volumes:
 	return nil
 }
 
+// Get database for docker compose file
 func getDatabaseForDockerCompose(database string) string {
 	databases := map[string]string{
 		"mysql": `mysql:
