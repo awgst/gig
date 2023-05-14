@@ -46,7 +46,6 @@ var upCommand = &cobra.Command{
 
 func init() {
 	up := upOptions{}
-	rootCommand.AddCommand(upCommand)
 	flags := upCommand.Flags()
 	flags.BoolVarP(&up.Detach, "detach", "d", false, "Detached mode: Run containers in the background")
 	flags.BoolVar(&up.Build, "build", false, "Build images before starting containers.")

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/awgst/gig/cmd/make"
 	"github.com/awgst/gig/pkg"
 	"github.com/spf13/cobra"
 )
@@ -25,5 +26,11 @@ var rootCommand = &cobra.Command{
 
 func Execute() {
 	rootCommand.CompletionOptions.DisableDefaultCmd = true
+	rootCommand.AddCommand(
+		createCommand,
+		upCommand,
+		make.ModuleCommand,
+		make.ModelCommand,
+	)
 	_ = rootCommand.Execute()
 }

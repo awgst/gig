@@ -50,7 +50,6 @@ var createCommand = &cobra.Command{
 }
 
 func init() {
-	rootCommand.AddCommand(createCommand)
 }
 
 func runCreateCommand(cmd *cobra.Command, args []string) {
