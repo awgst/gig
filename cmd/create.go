@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 	"time"
 
@@ -21,35 +20,28 @@ var goVersion = pkg.LatestGoVersion
 var projectName string
 
 var createCommand = &cobra.Command{
-	Use:     "create <name>/[go-version]",
+	Use:     "create <name>",
 	Aliases: []string{},
 	Short:   "Create a new project",
-	Long:    "Create a new project with specific version of go.\nSupported Go version is 1.18, 1.19, 1.20",
+	Long:    "Create a new project",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("requires a name argument")
 		}
 
-		argsSplitted := strings.Split(args[0], "/")
-		if len(argsSplitted) > 1 && argsSplitted[1] != "latest" {
-			goVersion = argsSplitted[1]
-		}
-
-		if !slices.Contains(pkg.SupportedGoVersions, goVersion) {
-			return fmt.Errorf("go v%s is unsupported", goVersion)
-		}
-
-		projectName = argsSplitted[0]
+		projectName = args[0]
 
 		return nil
 	},
 	ValidArgs:  []string{"name"},
 	ArgAliases: []string{"name"},
-	Example:    "gig create go-project/1.19",
+	Example:    "gig create go-project",
 	Run:        runCreateCommand,
 }
 
 func init() {
+	flags := createCommand.Flags()
+	flags.StringVarP(&goVersion, "version", "v", pkg.LatestGoVersion, "Specify version of go. Currently supported Go version is 1.18, 1.19, 1.20")
 }
 
 func runCreateCommand(cmd *cobra.Command, args []string) {
@@ -93,6 +85,10 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	if !slices.Contains(pkg.SupportedGoVersions, goVersion) {
+		log.Fatalf("go v%s is unsupported", goVersion)
+	}
+
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond, spinner.WithWriter(os.Stderr))
 	s.Suffix = " Creating project...\n"
 	s.Start()
@@ -122,6 +118,11 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 	)
 
 	err = generateDockerComposeFile(projectName, createCommandAnswer.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = generateJsonFile(projectName, createCommandAnswer.Database, createCommandAnswer.HttpFramework)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -220,4 +221,49 @@ func getDatabaseForDockerCompose(database string) string {
 	}
 
 	return databases[database]
+}
+
+// Generate json file
+func generateJsonFile(projectName, database, httpFramework string) error {
+	filename := "gig.json"
+
+	fullPath := filepath.Join(projectName, filename)
+	if _, err := os.Stat(fullPath); !os.IsNotExist(err) {
+		return err
+	}
+
+	f, err := os.Create(fullPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	var tmplString = fmt.Sprintf(
+		`{
+	"version": "1",
+	"name": "%s",
+	"database": "%s",
+	"http_framework": "%s"
+}`,
+		projectName,
+		database,
+		httpFramework,
+	)
+
+	type tmplVars struct {
+		Version   string
+		CamelName string
+	}
+
+	vars := tmplVars{
+		Version:   "1",
+		CamelName: filename,
+	}
+
+	tmpl := template.Must(template.New("gig").Parse(tmplString))
+	if err := tmpl.Execute(f, vars); err != nil {
+		return err
+	}
+
+	return nil
 }

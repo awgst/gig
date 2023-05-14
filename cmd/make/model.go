@@ -3,11 +3,8 @@ package make
 import (
 	"errors"
 	"fmt"
-	"html/template"
-	"log"
-	"os"
-	"path/filepath"
 	"regexp"
+	"strings"
 
 	content "github.com/awgst/gig/template/model"
 
@@ -54,8 +51,9 @@ func init() {
 }
 
 func runMakeModelCommand(cmd *cobra.Command, args []string) {
+	fileName := strings.ToLower(args[0])
 	templateContent := content.ModelTemplate
-	moduleName := args[0]
+	moduleName := fileName
 	if model.Module != "" {
 		moduleName = model.Module
 	}
@@ -67,36 +65,5 @@ func runMakeModelCommand(cmd *cobra.Command, args []string) {
 	if model.Plain {
 		templateContent = content.PlainModelTemplate
 	}
-	// Create template
-	tmpl := template.Must(template.New("model").Parse(templateContent))
-
-	folderPath := filepath.Join("src/app", moduleName, "model")
-	filePath := filepath.Join(folderPath, fmt.Sprintf("%s.go", args[0]))
-
-	// Create the folder if it doesn't exist
-	err := os.MkdirAll(folderPath, 0755)
-	if err != nil {
-		log.Fatal("Failed to create folder:", err)
-	}
-
-	// Check if the file already exists
-	if _, err := os.Stat(filePath); err == nil {
-		log.Fatalf("File already exists in %s", filePath)
-	}
-
-	fmt.Printf("Creating %s\n", filePath)
-	// Create a new file to write the generated code
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Fatal("Failed to create file:", err)
-	}
-	defer file.Close()
-
-	// Execute the template and write the result to the file
-	err = tmpl.Execute(file, modelData)
-	if err != nil {
-		log.Fatal("Failed to generate Go file:", err)
-	}
-
-	fmt.Println("Done!")
+	pkg.GenerateFile("model", fileName, moduleName, templateContent, modelData)
 }

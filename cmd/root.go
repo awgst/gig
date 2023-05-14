@@ -31,6 +31,7 @@ func Execute() {
 		upCommand,
 		make.ModuleCommand,
 		make.ModelCommand,
+		make.RepositoryCommand,
 	)
 	_ = rootCommand.Execute()
 }
