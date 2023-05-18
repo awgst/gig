@@ -87,6 +87,6 @@ func GenerateResponse(responseOpt ResponseOptions, args []string) {
 		templateContent = content.PlainResponseTemplate
 	}
 
-	// Generate repository file based on template
+	// Generate response file based on template
 	pkg.GenerateFile("http/response", fileName, moduleName, templateContent, responseData)
 }

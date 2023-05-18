@@ -94,6 +94,6 @@ func GenerateService(serviceOpt ServiceOptions, args []string) {
 		templateContent = content.ServiceCRUDTemplate
 	}
 
-	// Generate repository file based on template
+	// Generate service file based on template
 	pkg.GenerateFile("service", fileName, moduleName, templateContent, serviceData)
 }

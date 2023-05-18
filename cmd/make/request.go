@@ -73,6 +73,6 @@ func GenerateRequest(requestOpt RequestOptions, args []string) {
 		Name: pkg.SnakeToPascal(name),
 	}
 
-	// Generate repository file based on template
+	// Generate request file based on template
 	pkg.GenerateFile("http/request", fileName, moduleName, templateContent, requestData)
 }

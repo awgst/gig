@@ -24,7 +24,7 @@ type handlerData struct {
 	ServicePath   string
 }
 
-// handleOptions is the options that will be parsed in the command
+// handlerOptions is the options that will be parsed in the command
 type HandlerOptions struct {
 	Module string
 	CRUD   bool
@@ -88,6 +88,6 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 		ServicePath:   path,
 	}
 
-	// Generate repository file based on template
+	// Generate handler file based on template
 	pkg.GenerateFile("http/handler", fileName, moduleName, templateContent, handlerData)
 }
