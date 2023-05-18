@@ -33,6 +33,7 @@ func Execute() {
 		make.ModuleCommand,
 		make.ModelCommand,
 		make.RepositoryCommand,
+		make.ServiceCommand,
 	)
 	_ = rootCommand.Execute()
 }

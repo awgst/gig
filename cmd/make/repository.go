@@ -15,26 +15,28 @@ import (
 
 // repositoryData is the data that will be parsed in the template
 type repositoryData struct {
-	Name      string
-	LowerName string
-	ModelPath string
+	Name          string
+	LowerName     string
+	CamelCaseName string
+	ModelName     string
+	ModelPath     string
 }
 
 // repositoryOptions is the options that will be parsed in the command
-type repositoryOptions struct {
+type RepositoryOptions struct {
 	CRUD   bool
 	Module string
 }
 
 // repository is the options that will be parsed in the command
-var repository repositoryOptions
+var repository RepositoryOptions
 
 // projectName is the name of the project
 var projectName string
 
 // RepositoryCommand is the command to generate a new repository
 var RepositoryCommand = &cobra.Command{
-	Use:   "make:repository",
+	Use:   "make:repository <name>",
 	Short: "Make a new repository",
 	Long:  "Make a new repository",
 	Args: func(cmd *cobra.Command, args []string) error {
@@ -64,6 +66,19 @@ func init() {
 // The template will be parsed with the repositoryData
 // Accepts the name of the module as an argument
 func runMakeRepositoryCommand(cmd *cobra.Command, args []string) {
+	GenerateRepository(repository, args)
+}
+
+// GenerateRepository is the function that wrap generateRepository and generateRepositoryInterface
+// Accept RepositoryOptions as an argument
+func GenerateRepository(repositoryOptions RepositoryOptions, args []string) {
+	repository = repositoryOptions
+	if repository.CRUD {
+		GenerateModel(ModelOptions{
+			Module: repository.Module,
+			Plain:  false,
+		}, args)
+	}
 	generateRepository(args)
 	generateRepositoryInterface(args)
 }
@@ -74,18 +89,23 @@ func runMakeRepositoryCommand(cmd *cobra.Command, args []string) {
 // Accepts the name of the module as an argument
 func generateRepositoryInterface(args []string) {
 	templateContent := content.RepositoryInterfaceTemplate
-	moduleName := strings.ToLower(args[0])
-	fileName := fmt.Sprintf("%s_repository_interface", moduleName)
+	name := strings.ToLower(args[0])
+	moduleName := name
+	if repository.Module != "" {
+		moduleName = repository.Module
+	}
+	fileName := fmt.Sprintf("%s_repository_interface", name)
 	modelPath := filepath.Join(projectName, "src/app", moduleName)
 	repositoryData := repositoryData{
-		Name:      pkg.StringTitle(moduleName),
-		LowerName: strings.ToLower(moduleName),
-		ModelPath: modelPath,
+		Name:          pkg.SnakeToPascal(name),
+		LowerName:     strings.ToLower(name),
+		CamelCaseName: pkg.SnakeToCamel(name),
+		ModelName:     pkg.SnakeToPascal(name),
+		ModelPath:     modelPath,
 	}
 
 	if repository.CRUD {
 		templateContent = content.RepositoryInterfaceCRUDTemplate
-		runMakeModelCommand(nil, args)
 	}
 
 	// Generate repository file based on template
@@ -98,18 +118,23 @@ func generateRepositoryInterface(args []string) {
 // Accepts the name of the module as an argument
 func generateRepository(args []string) {
 	templateContent := content.RepositoryTemplate
-	moduleName := strings.ToLower(args[0])
-	fileName := fmt.Sprintf("gorm_%s_repository", moduleName)
+	name := strings.ToLower(args[0])
+	moduleName := name
+	if repository.Module != "" {
+		moduleName = repository.Module
+	}
+	fileName := fmt.Sprintf("gorm_%s_repository", name)
 	modelPath := filepath.Join(projectName, "src/app", moduleName)
 	repositoryData := repositoryData{
-		Name:      pkg.StringTitle(moduleName),
-		LowerName: strings.ToLower(moduleName),
-		ModelPath: modelPath,
+		Name:          pkg.SnakeToPascal(name),
+		LowerName:     strings.ToLower(name),
+		CamelCaseName: pkg.SnakeToCamel(name),
+		ModelName:     pkg.SnakeToPascal(name),
+		ModelPath:     modelPath,
 	}
 
 	if repository.CRUD {
 		templateContent = content.RepositoryCRUDTemplate
-		runMakeModelCommand(nil, args)
 	}
 
 	// Generate repository file based on template

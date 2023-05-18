@@ -18,17 +18,17 @@ type modelData struct {
 	Name string
 }
 
-// modelOptions is the options that will be parsed in the command
-type modelOptions struct {
+// ModelOptions is the options that will be parsed in the command
+type ModelOptions struct {
 	Module string
 	Plain  bool
 }
 
-var model modelOptions
+var model ModelOptions
 
 // ModelCommand is the command to generate a new model
 var ModelCommand = &cobra.Command{
-	Use:   "make:model",
+	Use:   "make:model <name>",
 	Short: "Make a new model",
 	Long:  "Make a new model",
 	Args: func(cmd *cobra.Command, args []string) error {
@@ -48,7 +48,7 @@ var ModelCommand = &cobra.Command{
 }
 
 func init() {
-	model = modelOptions{}
+	model = ModelOptions{}
 	flags := ModelCommand.Flags()
 	flags.StringVar(&model.Module, "module", "", "Specify the module that will be the destination")
 	flags.BoolVar(&model.Plain, "plain", false, "Create a plain model struct without any field")
@@ -59,6 +59,12 @@ func init() {
 // The template will be parsed with the modelData
 // Accepts the name of the module as an argument
 func runMakeModelCommand(cmd *cobra.Command, args []string) {
+	GenerateModel(model, args)
+}
+
+// GenerateModel is function that will be called from another package
+// Accept ModelOptions and []string as an argument
+func GenerateModel(model ModelOptions, args []string) {
 	fileName := strings.ToLower(args[0])
 	templateContent := content.ModelTemplate
 	moduleName := fileName

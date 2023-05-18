@@ -5,7 +5,7 @@ import (
 )
 
 var ModuleCommand = &cobra.Command{
-	Use:   "make:module",
+	Use:   "make:module <name>",
 	Short: "Make a new module",
 	Long:  "Make a new module",
 	Run:   runMakeModuleCommand,
