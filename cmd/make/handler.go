@@ -76,7 +76,7 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 	if handler.Module != "" {
 		moduleName = handler.Module
 	}
-	fileName := fmt.Sprintf("%s_handler", moduleName)
+	fileName := fmt.Sprintf("%s_handler", name)
 	path := filepath.Join(projectName, "src/app", moduleName)
 	handlerData := handlerData{
 		Name:          pkg.SnakeToPascal(name),
@@ -86,9 +86,6 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 		ModelPath:     path,
 		RequestPath:   filepath.Join(path, "http"),
 		ServicePath:   path,
-	}
-
-	if handlerOpt.CRUD {
 	}
 
 	// Generate repository file based on template

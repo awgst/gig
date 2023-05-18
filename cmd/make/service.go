@@ -77,7 +77,7 @@ func GenerateService(serviceOpt ServiceOptions, args []string) {
 	if service.Module != "" {
 		moduleName = service.Module
 	}
-	fileName := fmt.Sprintf("%s_service", moduleName)
+	fileName := fmt.Sprintf("%s_service", name)
 	path := filepath.Join(projectName, "src/app", moduleName)
 	serviceData := serviceData{
 		Name:           pkg.SnakeToPascal(name),
