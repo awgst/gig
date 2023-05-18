@@ -1,3 +1,4 @@
+// Package cmd implements the list of commands that can be executed
 package cmd
 
 import (
@@ -5,20 +6,24 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"text/template"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/awgst/gig/pkg"
+	"github.com/awgst/gig/pkg/generate"
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
 
+// goVersion is the version of go that will be used
+// by default it's the latest version from pkg.LatestGoVersion
 var goVersion = pkg.LatestGoVersion
 var projectName string
 
+// createCommand is the command to create a new project
 var createCommand = &cobra.Command{
 	Use:     "create <name>",
 	Aliases: []string{},
@@ -44,51 +49,23 @@ func init() {
 	flags.StringVarP(&goVersion, "version", "v", pkg.LatestGoVersion, "Specify version of go. Currently supported Go version is 1.18, 1.19, 1.20")
 }
 
+// runCreateCommand is the function that will be executed when the command is called
 func runCreateCommand(cmd *cobra.Command, args []string) {
+	// Ask the user to choose the http framework and the database
 	err := survey.Ask(
-		[]*survey.Question{
-			{
-				Name: "http_framework",
-				Prompt: &survey.Select{
-					Message: "Choose a http framework:",
-					Options: []string{
-						"chi",
-						"echo",
-						"fiber",
-						"gin",
-						"mux",
-					},
-					Default:  "chi",
-					PageSize: 10,
-				},
-				Validate: survey.Required,
-			},
-			{
-				Name: "database",
-				Prompt: &survey.Select{
-					Message: "Choose database",
-					Options: []string{
-						"mysql",
-						"postgresql",
-						"sqlite",
-						"sqlserver",
-					},
-					Default:  "mysql",
-					PageSize: 10,
-				},
-				Validate: survey.Required,
-			},
-		},
+		pkg.CreateSurveyQuestion,
 		&createCommandAnswer,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Check if the go version is supported
 	if !slices.Contains(pkg.SupportedGoVersions, goVersion) {
 		log.Fatalf("go v%s is unsupported", goVersion)
 	}
 
+	// Create project by cloning the template
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond, spinner.WithWriter(os.Stderr))
 	s.Suffix = " Creating project...\n"
 	s.Start()
@@ -97,12 +74,14 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	// Replace the name of the project in the template
 	pkg.Replace(
 		projectName,
 		fmt.Sprintf("gig-%s-template", createCommandAnswer.HttpFramework),
 		projectName,
 	)
 
+	// Replace the go version in the template
 	goModPath := filepath.Join(projectName, "go.mod")
 	pkg.Replace(
 		goModPath,
@@ -110,6 +89,7 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		fmt.Sprintf("go %s", goVersion),
 	)
 
+	// Replace the go version in the template
 	dockerFilePath := filepath.Join(projectName, "Dockerfile")
 	pkg.Replace(
 		dockerFilePath,
@@ -117,153 +97,36 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		fmt.Sprintf("FROM golang:%s-alpine", goVersion),
 	)
 
-	err = generateDockerComposeFile(projectName, createCommandAnswer.Database)
+	// Generate the docker-compose file
+	err = generate.GenerateDockerComposeFile(projectName, createCommandAnswer.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = generateJsonFile(projectName, createCommandAnswer.Database, createCommandAnswer.HttpFramework)
+	// Generate the json file
+	err = generate.GenerateJsonFile(projectName, createCommandAnswer.Database, createCommandAnswer.HttpFramework)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	goModDownload := exec.Command("go", "mod", "download")
+	goModDownload.Dir = projectName
+	err = goModDownload.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	goModTidy := exec.Command("go", "mod", "tidy")
+	goModTidy.Dir = projectName
+	err = goModTidy.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tput := exec.Command("tput", "reset")
+	tput.Run()
 
 	fmt.Println(`
-📗 Project created successfully. Happy coding!
-
-❗ Please run go mod download && go mod tidy after project created successfully
+📗 Project created successfully
 ❔ More informations --> https://github.com/awgst/gig`)
-}
-
-// Generate docker compose file
-func generateDockerComposeFile(projectName, database string) error {
-	filename := "docker-compose.yml"
-
-	fullPath := filepath.Join(projectName, filename)
-	if _, err := os.Stat(fullPath); !os.IsNotExist(err) {
-		return err
-	}
-
-	f, err := os.Create(fullPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	var tmplString = fmt.Sprintf(
-		`version: '3'
-services:
-    backend:
-        build: ./
-        container_name: 'gig_backend'
-        ports:
-            - '${APP_PORT}:${APP_PORT}'
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        volumes:
-            - ./:/app/
-            - ./go.mod:/go/src/app/go.mod
-        networks:
-            - gig
-        depends_on:
-            - %s
-    %s
-networks:
-    gig:
-        driver: bridge
-volumes:
-    gig-%s:
-        driver: local`,
-		database,
-		getDatabaseForDockerCompose(database),
-		database,
-	)
-
-	type tmplVars struct {
-		Version   string
-		CamelName string
-	}
-
-	vars := tmplVars{
-		Version:   "1",
-		CamelName: filename,
-	}
-
-	tmpl := template.Must(template.New("docker-compose").Parse(tmplString))
-	if err := tmpl.Execute(f, vars); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Get database for docker compose file
-func getDatabaseForDockerCompose(database string) string {
-	databases := map[string]string{
-		"mysql": `mysql:
-        image: 'mysql:latest'
-        container_name: 'gig_mysql'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
-        environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: "%"
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-        volumes:
-            - 'gig-mysql:/var/lib/mysql'
-            - './database/create-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-        networks:
-            - gig
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
-            retries: 3
-            timeout: 5s`,
-	}
-
-	return databases[database]
-}
-
-// Generate json file
-func generateJsonFile(projectName, database, httpFramework string) error {
-	filename := "gig.json"
-
-	fullPath := filepath.Join(projectName, filename)
-	if _, err := os.Stat(fullPath); !os.IsNotExist(err) {
-		return err
-	}
-
-	f, err := os.Create(fullPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	var tmplString = fmt.Sprintf(
-		`{
-	"version": "1",
-	"name": "%s",
-	"database": "%s",
-	"http_framework": "%s"
-}`,
-		projectName,
-		database,
-		httpFramework,
-	)
-
-	type tmplVars struct {
-		Version   string
-		CamelName string
-	}
-
-	vars := tmplVars{
-		Version:   "1",
-		CamelName: filename,
-	}
-
-	tmpl := template.Must(template.New("gig").Parse(tmplString))
-	if err := tmpl.Execute(f, vars); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -1,3 +1,4 @@
+// Package make implements the command to generate a new file
 package make
 
 import (
@@ -12,21 +13,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// repositoryData is the data that will be parsed in the template
 type repositoryData struct {
 	Name      string
 	LowerName string
 	ModelPath string
 }
 
+// repositoryOptions is the options that will be parsed in the command
 type repositoryOptions struct {
 	CRUD   bool
 	Module string
 }
 
+// repository is the options that will be parsed in the command
 var repository repositoryOptions
 
+// projectName is the name of the project
 var projectName string
 
+// RepositoryCommand is the command to generate a new repository
 var RepositoryCommand = &cobra.Command{
 	Use:   "make:repository",
 	Short: "Make a new repository",
@@ -53,11 +59,19 @@ func init() {
 	projectName, _ = pkg.ReadJsonString("name")
 }
 
+// runMakeRepositoryCommand is the function that will be executed when the command is called
+// It will generate a new repository file based on the template
+// The template will be parsed with the repositoryData
+// Accepts the name of the module as an argument
 func runMakeRepositoryCommand(cmd *cobra.Command, args []string) {
 	generateRepository(args)
 	generateRepositoryInterface(args)
 }
 
+// generateRepositoryInterface is the function that will be executed when the command is called
+// It will generate a new repository interface file based on the template
+// The template will be parsed with the repositoryData
+// Accepts the name of the module as an argument
 func generateRepositoryInterface(args []string) {
 	templateContent := content.RepositoryInterfaceTemplate
 	moduleName := strings.ToLower(args[0])
@@ -78,6 +92,10 @@ func generateRepositoryInterface(args []string) {
 	pkg.GenerateFile("repository", fileName, moduleName, templateContent, repositoryData)
 }
 
+// generateRepository is the function that will be executed when the command is called
+// It will generate a new repository file based on the template
+// The template will be parsed with the repositoryData
+// Accepts the name of the module as an argument
 func generateRepository(args []string) {
 	templateContent := content.RepositoryTemplate
 	moduleName := strings.ToLower(args[0])

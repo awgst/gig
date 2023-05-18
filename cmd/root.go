@@ -1,3 +1,4 @@
+// Package cmd implements the list of commands that can be executed
 package cmd
 
 import (

@@ -1,3 +1,4 @@
+// Package make implements the command to generate a new file
 package make
 
 import (
@@ -12,10 +13,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// modelData is the data that will be parsed in the template
 type modelData struct {
 	Name string
 }
 
+// modelOptions is the options that will be parsed in the command
 type modelOptions struct {
 	Module string
 	Plain  bool
@@ -23,6 +26,7 @@ type modelOptions struct {
 
 var model modelOptions
 
+// ModelCommand is the command to generate a new model
 var ModelCommand = &cobra.Command{
 	Use:   "make:model",
 	Short: "Make a new model",
@@ -50,6 +54,10 @@ func init() {
 	flags.BoolVar(&model.Plain, "plain", false, "Create a plain model struct without any field")
 }
 
+// runMakeModelCommand is the function that will be executed when the command is called
+// It will generate a new model file based on the template
+// The template will be parsed with the modelData
+// Accepts the name of the module as an argument
 func runMakeModelCommand(cmd *cobra.Command, args []string) {
 	fileName := strings.ToLower(args[0])
 	templateContent := content.ModelTemplate

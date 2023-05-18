@@ -1,3 +1,4 @@
+// Package pkg implements list function and variable that can be used by other packages
 package pkg
 
 import (
@@ -7,6 +8,10 @@ import (
 	"golang.org/x/text/language"
 )
 
+// SnakeToCamel converts snake_case to camelCase
+// Accepts snakeCase as string
+// Returns string
+// Example: snake_case -> SnakeCase
 func SnakeToPascal(snakeCase string) string {
 	words := strings.Split(snakeCase, "_")
 	caser := cases.Title(language.AmericanEnglish)
@@ -18,6 +23,10 @@ func SnakeToPascal(snakeCase string) string {
 	return strings.Join(words, "")
 }
 
+// StringTitle converts a string to title case
+// Accepts str as string
+// Returns string
+// Example: hello world -> Hello World
 func StringTitle(str string) string {
 	caser := cases.Title(language.AmericanEnglish)
 	return caser.String(str)

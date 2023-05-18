@@ -1,3 +1,4 @@
+// Package pkg implements list function and variable that can be used by other packages
 package pkg
 
 import (
@@ -11,6 +12,8 @@ import (
 	"github.com/briandowns/spinner"
 )
 
+// GenerateFile generates a file from a template
+// Accepts templateType, fileName, moduleName, templateContent, templateData
 func GenerateFile(templateType string, fileName string, moduleName string, templateContent string, templateData any) {
 	// Create template
 	tmpl := template.Must(template.New(templateType).Parse(templateContent))
