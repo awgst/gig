@@ -12,3 +12,6 @@ func New{{.Name}}Handler() {{.Name}}Handler {
 	return &{{.CamelCaseName}}Handler{}
 }
 `
+var HandlerCRUDTemplate = map[string]string{
+	"gin": handlerGinCRUDTemplate,
+}

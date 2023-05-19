@@ -21,6 +21,7 @@ type handlerData struct {
 	ModelName     string
 	ModelPath     string
 	RequestPath   string
+	ResponsePath  string
 	ServicePath   string
 }
 
@@ -55,6 +56,7 @@ var HandlerCommand = &cobra.Command{
 func init() {
 	flags := HandlerCommand.Flags()
 	flags.StringVar(&handler.Module, "module", "", "Specify the module that will be the destination")
+	flags.BoolVar(&handler.CRUD, "crud", false, "Create a handler with CRUD methods")
 }
 
 // runMakeHandlerCommand is the function that will be executed when the command is called
@@ -78,14 +80,22 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 	}
 	fileName := fmt.Sprintf("%s_handler", name)
 	path := filepath.Join(projectName, "src/app", moduleName)
+	httpPath := filepath.Join(path, "http")
+	pascalName := pkg.SnakeToPascal(name)
 	handlerData := handlerData{
-		Name:          pkg.SnakeToPascal(name),
+		Name:          pascalName,
 		LowerName:     strings.ToLower(name),
 		CamelCaseName: pkg.SnakeToCamel(name),
-		ModelName:     pkg.SnakeToPascal(name),
+		ModelName:     pascalName,
 		ModelPath:     path,
-		RequestPath:   filepath.Join(path, "http"),
+		RequestPath:   httpPath,
+		ResponsePath:  httpPath,
 		ServicePath:   path,
+	}
+
+	httpFramework, _ := pkg.ReadJsonString("http_framework")
+	if handler.CRUD {
+		templateContent = content.HandlerCRUDTemplate[httpFramework]
 	}
 
 	// Generate handler file based on template
