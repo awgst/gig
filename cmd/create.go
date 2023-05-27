@@ -123,10 +123,8 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	tput := exec.Command("tput", "reset")
-	tput.Run()
-
-	fmt.Println(`
-📗 Project created successfully
-❔ More informations --> https://github.com/awgst/gig`)
+	fmt.Println("\n📗 Project created successfully")
+	fmt.Println("❔ More informations --> https://github.com/awgst/gig")
+	fmt.Println("")
+	s.Stop()
 }

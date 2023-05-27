@@ -31,6 +31,10 @@ func GitClone(projectName, templateType string) error {
 		},
 	)
 
+	if err != nil {
+		return err
+	}
+
 	// Cleanup folder
 	for _, f := range []string{".git", ".github"} {
 		err = os.RemoveAll(filepath.Join(folder, f))

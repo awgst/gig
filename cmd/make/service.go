@@ -74,8 +74,8 @@ func GenerateService(serviceOpt ServiceOptions, args []string) {
 	templateContent := content.ServiceTemplate
 	name := strings.ToLower(args[0])
 	moduleName := name
-	if service.Module != "" {
-		moduleName = service.Module
+	if serviceOpt.Module != "" {
+		moduleName = serviceOpt.Module
 	}
 	fileName := fmt.Sprintf("%s_service", name)
 	path := filepath.Join(projectName, "src/app", moduleName)

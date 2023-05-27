@@ -71,8 +71,8 @@ func GenerateResponse(responseOpt ResponseOptions, args []string) {
 	templateContent := content.ResponseTemplate
 	name := strings.ToLower(args[0])
 	moduleName := name
-	if response.Module != "" {
-		moduleName = response.Module
+	if responseOpt.Module != "" {
+		moduleName = responseOpt.Module
 	}
 	fileName := fmt.Sprintf("%s_response", name)
 	path := filepath.Join(projectName, "src/app", moduleName)

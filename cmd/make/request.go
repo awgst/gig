@@ -65,8 +65,8 @@ func GenerateRequest(requestOpt RequestOptions, args []string) {
 	templateContent := content.RequestTemplate
 	name := strings.ToLower(args[0])
 	moduleName := name
-	if request.Module != "" {
-		moduleName = request.Module
+	if requestOpt.Module != "" {
+		moduleName = requestOpt.Module
 	}
 	fileName := fmt.Sprintf("%s_request", name)
 	requestData := requestData{

@@ -13,5 +13,6 @@ func New{{.Name}}Handler() {{.Name}}Handler {
 }
 `
 var HandlerCRUDTemplate = map[string]string{
-	"gin": handlerGinCRUDTemplate,
+	"gin":  handlerGinCRUDTemplate,
+	"echo": handlerEchoCRUDTemplate,
 }

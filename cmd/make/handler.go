@@ -75,8 +75,8 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 	templateContent := content.HandlerPlainTemplate
 	name := strings.ToLower(args[0])
 	moduleName := name
-	if handler.Module != "" {
-		moduleName = handler.Module
+	if handlerOpt.Module != "" {
+		moduleName = handlerOpt.Module
 	}
 	fileName := fmt.Sprintf("%s_handler", name)
 	path := filepath.Join(projectName, "src/app", moduleName)
@@ -94,7 +94,7 @@ func GenerateHandler(handlerOpt HandlerOptions, args []string) {
 	}
 
 	httpFramework, _ := pkg.ReadJsonString("http_framework")
-	if handler.CRUD {
+	if handlerOpt.CRUD {
 		templateContent = content.HandlerCRUDTemplate[httpFramework]
 	}
 

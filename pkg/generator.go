@@ -47,4 +47,5 @@ func GenerateFile(templateType string, fileName string, moduleName string, templ
 	if err != nil {
 		log.Fatal("Failed to generate Go file:", err)
 	}
+	s.Stop()
 }

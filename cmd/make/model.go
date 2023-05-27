@@ -64,19 +64,19 @@ func runMakeModelCommand(cmd *cobra.Command, args []string) {
 
 // GenerateModel is function that will be called from another package
 // Accept ModelOptions and []string as an argument
-func GenerateModel(model ModelOptions, args []string) {
+func GenerateModel(modelOpt ModelOptions, args []string) {
 	fileName := strings.ToLower(args[0])
 	templateContent := content.ModelTemplate
 	moduleName := fileName
-	if model.Module != "" {
-		moduleName = model.Module
+	if modelOpt.Module != "" {
+		moduleName = modelOpt.Module
 	}
 	// Generate model file based on template
 	modelData := modelData{
 		Name: pkg.SnakeToPascal(args[0]),
 	}
 
-	if model.Plain {
+	if modelOpt.Plain {
 		templateContent = content.PlainModelTemplate
 	}
 	pkg.GenerateFile("model", fileName, moduleName, templateContent, modelData)
