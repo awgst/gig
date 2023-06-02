@@ -98,17 +98,21 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 	)
 
 	// Replace database connection
+	useOrm := "sql"
 	replacer := `SQL: database.ConnectSql(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
 	replaced := `// SQL: database.ConnectSql(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
 	if createCommandAnswer.UseOrm {
 		replacer = `Gorm: database.ConnectGorm(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
 		replaced = `// Gorm: database.ConnectGorm(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
+		useOrm = "orm"
 	}
 	pkg.Replace(
 		filepath.Join(projectName, "cmd", "main.go"),
 		replaced,
 		replacer,
 	)
+
+	replaceDatabase(createCommandAnswer.Database, useOrm)
 
 	// Generate the docker-compose file
 	err = generate.GenerateDockerComposeFile(projectName, createCommandAnswer.Database)
@@ -145,4 +149,40 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 	fmt.Println("❔ More informations --> https://github.com/awgst/gig")
 	fmt.Println("")
 	s.Stop()
+}
+
+// Replace database connection
+func replaceDatabase(database string, conn string) {
+	databasesReplaced := map[string]map[string]string{
+		"postgresql": {
+			"orm": `// "postgres": postgres.Open(dsn),`,
+			"sql": `// _ "github.com/lib/pq"`,
+		},
+		"mysql": {
+			"orm": `// "mysql": mysql.Open(dsn),`,
+			"sql": `// _ "github.com/go-sql-driver/mysql"`,
+		},
+	}
+	databaseReplacer := map[string]map[string]string{
+		"postgresql": {
+			"orm": `"postgres": postgres.Open(dsn),`,
+			"sql": `_ "github.com/lib/pq"`,
+		},
+		"mysql": {
+			"orm": `"mysql": mysql.Open(dsn),`,
+			"sql": `_ "github.com/go-sql-driver/mysql"`,
+		},
+	}
+	fileName := map[string]string{
+		"orm": "gorm.go",
+		"sql": "sql.go",
+	}
+
+	replaced := databasesReplaced[database][conn]
+	replacer := databaseReplacer[database][conn]
+	pkg.Replace(
+		filepath.Join(projectName, "pkg", "database", fileName[conn]),
+		replaced,
+		replacer,
+	)
 }
