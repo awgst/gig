@@ -1,3 +1,4 @@
+// Package pkg implements list function and variable that can be used by other packages
 package pkg
 
 import (
@@ -9,6 +10,8 @@ import (
 )
 
 // Git clone template project from repository
+// Accepts projectName, templateType
+// Returns error
 func GitClone(projectName, templateType string) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -27,6 +30,10 @@ func GitClone(projectName, templateType string) error {
 			URL: gitUrl,
 		},
 	)
+
+	if err != nil {
+		return err
+	}
 
 	// Cleanup folder
 	for _, f := range []string{".git", ".github"} {

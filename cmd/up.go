@@ -1,3 +1,4 @@
+// Package cmd implements the list of commands that can be executed
 package cmd
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// upOptions is the options for up command
 type upOptions struct {
 	Detach             bool
 	Build              bool
@@ -37,6 +39,7 @@ type upOptions struct {
 	noAttach           []string
 }
 
+// upCommand is the command to start go project using docker
 var upCommand = &cobra.Command{
 	Use:   "up",
 	Short: "Start go project using docker",
@@ -46,7 +49,6 @@ var upCommand = &cobra.Command{
 
 func init() {
 	up := upOptions{}
-	rootCommand.AddCommand(upCommand)
 	flags := upCommand.Flags()
 	flags.BoolVarP(&up.Detach, "detach", "d", false, "Detached mode: Run containers in the background")
 	flags.BoolVar(&up.Build, "build", false, "Build images before starting containers.")
@@ -74,6 +76,8 @@ func init() {
 	flags.IntVar(&up.waitTimeout, "wait-timeout", 0, "timeout waiting for application to be running|healthy.")
 }
 
+// runUpCommand is the function that will be executed when the command is called
+// It will run docker-compose up command with passed flags
 func runUpCommand(cmd *cobra.Command, args []string) {
 	// Get raw flags from cmd
 	var flags []string
