@@ -15,7 +15,6 @@ import (
 	"github.com/awgst/gig/pkg/generate"
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slices"
 )
 
 // goVersion is the version of go that will be used
@@ -58,11 +57,6 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 	)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	// Check if the go version is supported
-	if !slices.Contains(pkg.SupportedGoVersions, goVersion) {
-		log.Fatalf("go v%s is unsupported", goVersion)
 	}
 
 	// Create project by cloning the template

@@ -21,7 +21,7 @@ var rootCommand = &cobra.Command{
 / /_/ // // /_/ /  
 \____/___/\____/   
 
-🚀 Help faster Go project development
+🚀 Command line interface which provides a number helpful command to assist Go project development!
 ❔ More informations --> https://github.com/awgst/gig`,
 }
 
