@@ -20,12 +20,14 @@ type repositoryData struct {
 	CamelCaseName string
 	ModelName     string
 	ModelPath     string
+	TableName     string
 }
 
 // repositoryOptions is the options that will be parsed in the command
 type RepositoryOptions struct {
 	CRUD   bool
 	Module string
+	ORM    bool
 }
 
 // repository is the options that will be parsed in the command
@@ -58,6 +60,7 @@ func init() {
 	flags := RepositoryCommand.Flags()
 	flags.BoolVar(&repository.CRUD, "crud", false, "Create a repository with CRUD methods")
 	flags.StringVar(&repository.Module, "module", "", "Specify the module that will be the destination")
+	flags.BoolVar(&repository.ORM, "orm", false, "Create a repository with ORM methods using GORM")
 	projectName, _ = pkg.ReadJsonString("name")
 }
 
@@ -120,10 +123,22 @@ func generateRepository(args []string) {
 	templateContent := content.RepositoryTemplate
 	name := strings.ToLower(args[0])
 	moduleName := name
+	types := "sql"
 	if repository.Module != "" {
 		moduleName = repository.Module
 	}
-	fileName := fmt.Sprintf("gorm_%s_repository", name)
+
+	if repository.CRUD {
+		templateContent = content.RepositoryCRUDTemplate
+	}
+
+	useOrm, _ := pkg.ReadJsonBool("use_orm")
+	if repository.ORM || useOrm {
+		templateContent = content.RepositoryCRUDGormTemplate
+		types = "gorm"
+	}
+
+	fileName := fmt.Sprintf("%s_%s_repository", types, name)
 	modelPath := filepath.Join(projectName, "src/app", moduleName)
 	repositoryData := repositoryData{
 		Name:          pkg.SnakeToPascal(name),
@@ -131,10 +146,7 @@ func generateRepository(args []string) {
 		CamelCaseName: pkg.SnakeToCamel(name),
 		ModelName:     pkg.SnakeToPascal(name),
 		ModelPath:     modelPath,
-	}
-
-	if repository.CRUD {
-		templateContent = content.RepositoryCRUDTemplate
+		TableName:     pkg.PluralizeSnakeCase(name),
 	}
 
 	// Generate repository file based on template

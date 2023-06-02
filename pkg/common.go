@@ -46,3 +46,32 @@ func SnakeToCamel(snakeCase string) string {
 
 	return strings.Join(words, "")
 }
+
+// PluralizeSnakeCase converts snake_case to plural snake_case
+// Accepts snakeCase as string
+// Returns string
+// Example: snake_case -> snake_cases
+func PluralizeSnakeCase(word string) string {
+	// Check for some common pluralization rules
+	if strings.HasSuffix(word, "s") || strings.HasSuffix(word, "x") ||
+		strings.HasSuffix(word, "ch") || strings.HasSuffix(word, "sh") {
+		return word + "es"
+	}
+
+	if strings.HasSuffix(word, "y") && !isVowel(word[len(word)-2]) {
+		return word[:len(word)-1] + "ies"
+	}
+
+	return word + "s"
+}
+
+// Helper function to check if a character is a vowel
+func isVowel(c byte) bool {
+	vowels := []byte{'a', 'e', 'i', 'o', 'u'}
+	for _, v := range vowels {
+		if v == c {
+			return true
+		}
+	}
+	return false
+}

@@ -47,6 +47,7 @@ type moduleData struct {
 	ServiceName    string
 	RepositoryName string
 	PackageName    string
+	ProjectName    string
 }
 
 var module ModuleOptions
@@ -119,6 +120,7 @@ func GenerateModule(moduleOpt ModuleOptions, args []string) {
 		ServiceName:    fmt.Sprintf("%sService", pascalName),
 		RepositoryName: fmt.Sprintf("%sRepository", pascalName),
 		PackageName:    strings.ReplaceAll(moduleName, "_", ""),
+		ProjectName:    projectName,
 	}
 
 	// Generate module file

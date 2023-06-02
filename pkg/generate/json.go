@@ -11,7 +11,7 @@ import (
 // Generate json file
 // Accepts projectName, database and httpFramework as string
 // Returns error
-func GenerateJsonFile(projectName, database, httpFramework string) error {
+func GenerateJsonFile(projectName, database, httpFramework string, useOrm bool) error {
 	filename := "gig.json"
 
 	fullPath := filepath.Join(projectName, filename)
@@ -30,11 +30,13 @@ func GenerateJsonFile(projectName, database, httpFramework string) error {
 	"version": "1",
 	"name": "%s",
 	"database": "%s",
-	"http_framework": "%s"
+	"http_framework": "%s",
+	"use_orm": %t
 }`,
 		projectName,
 		database,
 		httpFramework,
+		useOrm,
 	)
 
 	type tmplVars struct {

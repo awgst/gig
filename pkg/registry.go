@@ -11,6 +11,7 @@ var SupportedGoVersions = []string{"1.20", "1.19", "1.18"}
 type CreateCommandAnswer struct {
 	HttpFramework string `survey:"http_framework"`
 	Database      string `survey:"database"`
+	UseOrm        bool   `survey:"use_orm"`
 }
 
 // CreateSurveyQuestion is the list of questions that will be asked to the user
@@ -18,15 +19,15 @@ var CreateSurveyQuestion = []*survey.Question{
 	{
 		Name: "http_framework",
 		Prompt: &survey.Select{
-			Message: "Choose a http framework:",
+			Message: "Choose a framework:",
 			Options: []string{
-				"chi",
-				"echo",
-				"fiber",
+				// "chi",
+				// "echo",
+				// "fiber",
 				"gin",
-				"mux",
+				// "mux",
 			},
-			Default:  "chi",
+			Default:  "gin",
 			PageSize: 10,
 		},
 		Validate: survey.Required,
@@ -38,12 +39,19 @@ var CreateSurveyQuestion = []*survey.Question{
 			Options: []string{
 				"mysql",
 				"postgresql",
-				"sqlite",
-				"sqlserver",
+				// "sqlite",
+				// "sqlserver",
 			},
 			Default:  "mysql",
 			PageSize: 10,
 		},
 		Validate: survey.Required,
+	},
+	{
+		Name: "use_orm",
+		Prompt: &survey.Confirm{
+			Message: "Do you want to use GORM?",
+			Default: false,
+		},
 	},
 }

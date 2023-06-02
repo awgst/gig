@@ -20,3 +20,19 @@ func ReadJsonString(key string) (string, error) {
 
 	return viper.GetString(key), nil
 }
+
+// ReadJsonBool reads a bool from a JSON file
+// Accepts key as string
+// Returns bool, error
+func ReadJsonBool(key string) (bool, error) {
+	viper.SetConfigType("json")
+	viper.AddConfigPath(".")
+	viper.SetConfigName("gig")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return false, err
+	}
+
+	return viper.GetBool(key), nil
+}

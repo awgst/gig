@@ -97,6 +97,19 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 		fmt.Sprintf("FROM golang:%s-alpine", goVersion),
 	)
 
+	// Replace database connection
+	replacer := `SQL: database.ConnectSql(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
+	replaced := `// SQL: database.ConnectSql(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
+	if createCommandAnswer.UseOrm {
+		replacer = `Gorm: database.ConnectGorm(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
+		replaced = `// Gorm: database.ConnectGorm(env.Get("DB_DRIVER"), Database()[env.Get("DB_DRIVER")]),`
+	}
+	pkg.Replace(
+		filepath.Join(projectName, "cmd", "main.go"),
+		replaced,
+		replacer,
+	)
+
 	// Generate the docker-compose file
 	err = generate.GenerateDockerComposeFile(projectName, createCommandAnswer.Database)
 	if err != nil {
@@ -104,7 +117,12 @@ func runCreateCommand(cmd *cobra.Command, args []string) {
 	}
 
 	// Generate the json file
-	err = generate.GenerateJsonFile(projectName, createCommandAnswer.Database, createCommandAnswer.HttpFramework)
+	err = generate.GenerateJsonFile(
+		projectName,
+		createCommandAnswer.Database,
+		createCommandAnswer.HttpFramework,
+		createCommandAnswer.UseOrm,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
