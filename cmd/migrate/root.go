@@ -15,5 +15,6 @@ func init() {
 	RootCommand.CompletionOptions.DisableDefaultCmd = true
 	RootCommand.AddCommand(
 		upCommand,
+		downCommand,
 	)
 }

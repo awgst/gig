@@ -88,70 +88,53 @@ func (m *Migrate) Up(ctx context.Context, paths map[int]string) error {
 	})
 }
 
-// func (m *Migrate) Up(ctx context.Context, paths map[int]string) error {
-// 	tx, err := m.DB.BeginTx(ctx, nil)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer func() {
-// 		fmt.Println("Rollback")
-// 	}()
-
-// 	fmt.Println("Migrating...")
-// 	_, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS gig_migrations (
-// 		version int(11) NOT NULL
-// 	)`)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	rows, err := tx.QueryContext(ctx, `SELECT version FROM gig_migrations order by version desc limit 1`)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	var latestVersion int
-// 	for rows.Next() {
-// 		err = rows.Scan(&latestVersion)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	for k, path := range paths {
-// 		if k < latestVersion {
-// 			continue
-// 		}
-// 		c, err := os.ReadFile(path)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		sql := string(c)
-// 		_, err = tx.ExecContext(ctx, sql)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		_, err = tx.ExecContext(ctx, `INSERT INTO gig_migrations (version, status) VALUES (?)`, k)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		fmt.Printf("Migrating: %s\n", path)
-// 	}
-
-// 	err = tx.Commit()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	fmt.Println("All migrations have been applied")
-// 	return nil
-// }
-
 // Down migrates the database to the previous version
-func (m *Migrate) Down() error {
-	return nil
+func (m *Migrate) Down(ctx context.Context, paths map[int]string) error {
+	return m.transaction(ctx, func(tx *sql.Tx) error {
+		if _, err := tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS gig_migrations ( version int(11) NOT NULL )`); err != nil {
+			return err
+		}
+
+		// Get latest migration version
+		rows, err := tx.QueryContext(ctx, `SELECT version FROM gig_migrations order by version desc limit 1`)
+		if err != nil {
+			return err
+		}
+
+		var latestVersion int
+		for rows.Next() {
+			err = rows.Scan(&latestVersion)
+			if err != nil {
+				return err
+			}
+		}
+
+		for k, path := range paths {
+			if k > latestVersion {
+				continue
+			}
+			// Read file
+			c, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			// Execute sql
+			sql := string(c)
+			if _, err := tx.ExecContext(ctx, sql); err != nil {
+				return err
+			}
+
+			// Insert migration version
+			if _, err := tx.ExecContext(ctx, `DELETE FROM gig_migrations WHERE version = ?`, k); err != nil {
+				return err
+			}
+
+			fmt.Printf("Rolling Back: %s\n", path)
+		}
+
+		return nil
+	})
 }
 
 // Reset migrates the database to the initial version
@@ -184,4 +167,14 @@ func (m *Migrate) setupTable() error {
 	}
 
 	return nil
+}
+
+// GetLatestVersion returns the latest version of the migration
+func (m *Migrate) GetLatestVersion() int {
+	var version int
+	err := m.DB.QueryRow(`SELECT version FROM gig_migrations ORDER BY version DESC LIMIT 1`).Scan(&version)
+	if err != nil {
+		return 0
+	}
+	return version
 }
