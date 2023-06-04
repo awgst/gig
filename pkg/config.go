@@ -2,4 +2,4 @@
 package pkg
 
 // CLIVersion is the version of the GIG CLI
-var CLIVersion = "1.1.0"
+var CLIVersion = "1.2.0"
