@@ -130,6 +130,7 @@ Arguments:
 Types:
 | Type        | Description                       |
 |-------------|-----------------------------------|
+| `migration` | Create a new migration            |
 | `module`    | Create a new module               |
 | `handler`   | Create a new handler              |
 | `model`     | Create a new model                |
@@ -143,6 +144,19 @@ Run docker-compose up command
 ```bash
 gig up
 ```
+
+# migrate
+Run a simple database migration
+```bash
+gig migrate <command>
+```
+Commands:
+| Command      | Description                       |
+|--------------|-----------------------------------|
+| `up`         | Run migrate                       |
+| `down`       | Rollback migrate                  |
+
+-----------------
 
 To see the list of available commands, use the `--help` flag
 ```bash

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 	"time"
 
@@ -14,12 +15,18 @@ import (
 
 // GenerateFile generates a file from a template
 // Accepts templateType, fileName, moduleName, templateContent, templateData
-func GenerateFile(templateType string, fileName string, moduleName string, templateContent string, templateData any) {
+func GenerateFile(templateType string, fileName string, moduleName string, templateContent string, templateData any, path ...string) {
 	// Create template
 	tmpl := template.Must(template.New(templateType).Parse(templateContent))
 
 	folderPath := filepath.Join("src/app", moduleName, templateType)
-	filePath := filepath.Join(folderPath, fmt.Sprintf("%s.go", fileName))
+	if len(path) > 0 {
+		folderPath = path[0]
+	}
+	if !strings.Contains(fileName, ".sql") {
+		fileName = fmt.Sprintf("%s.go", fileName)
+	}
+	filePath := filepath.Join(folderPath, fileName)
 
 	// Create the folder if it doesn't exist
 	err := os.MkdirAll(folderPath, 0755)
