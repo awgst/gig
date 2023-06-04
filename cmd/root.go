@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"github.com/awgst/gig/cmd/make"
+	"github.com/awgst/gig/cmd/migrate"
 	"github.com/awgst/gig/pkg"
 	"github.com/spf13/cobra"
 )
@@ -30,6 +31,7 @@ func Execute() {
 	rootCommand.AddCommand(
 		createCommand,
 		upCommand,
+		make.MigrationCommand,
 		make.ModuleCommand,
 		make.ModelCommand,
 		make.RepositoryCommand,
@@ -37,6 +39,7 @@ func Execute() {
 		make.HandlerCommand,
 		make.RequestCommand,
 		make.ResponseCommand,
+		migrate.RootCommand,
 	)
 	_ = rootCommand.Execute()
 }
