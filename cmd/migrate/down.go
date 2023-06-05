@@ -2,14 +2,13 @@
 package migrate
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"path/filepath"
-	"regexp"
-	"strconv"
 
-	"github.com/awgst/gig/pkg/database"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -50,18 +49,22 @@ func runMigrateDownCommand(cmd *cobra.Command, args []string) {
 	}
 
 	// Get driver and dsn
-	driver, dbDsn := getDriverAndDsn()
+	_, dbDsn := getDriverAndDsn()
 	if down.Connection != "" {
 		dbDsn = down.Connection
 	}
-	m := NewMigrate(database.ConnectSql(driver, dbDsn))
-	defer m.DB.Close()
 
-	// Get map of all migrations file in the path
-	paths := getPathForDown(m, path)
+	// Create migrate instance
+	m, err := migrate.New(
+		fmt.Sprintf("file://%v", path),
+		dbDsn,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Down migrations
-	if err := m.Down(context.Background(), paths); err != nil {
+	// Migrate down
+	if err := m.Down(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -69,37 +72,37 @@ func runMigrateDownCommand(cmd *cobra.Command, args []string) {
 }
 
 // getPathForDown returns the paths of the migrations
-func getPathForDown(m *Migrate, path string) map[int]string {
-	fromFile := 0
-	toFile := 0
-	paths := map[int]string{}
+// func getPathForDown(m *Migrate, path string) map[int]string {
+// 	fromFile := 0
+// 	toFile := 0
+// 	paths := map[int]string{}
 
-	fromFile = m.GetLatestVersion()
+// 	fromFile = m.GetLatestVersion()
 
-	files, _ := filepath.Glob(filepath.Join(path, "*.down.sql"))
-	filesLength := len(files)
-	if down.From != 0 {
-		fromFile = down.From
-	}
+// 	files, _ := filepath.Glob(filepath.Join(path, "*.down.sql"))
+// 	filesLength := len(files)
+// 	if down.From != 0 {
+// 		fromFile = down.From
+// 	}
 
-	if fromFile != 0 {
-		toFile = fromFile - 1
-	}
+// 	if fromFile != 0 {
+// 		toFile = fromFile - 1
+// 	}
 
-	if down.To != 0 {
-		toFile = down.To
-	}
-	for i := filesLength - 1; i >= 0; i-- {
-		file := files[i]
-		regex := regexp.MustCompile(`^(\d+)_`)
-		version := regex.FindStringSubmatch(filepath.Base(file))
-		if len(version) > 0 {
-			v, _ := strconv.Atoi(version[1])
-			if v <= fromFile && v > toFile {
-				paths[v] = file
-			}
-		}
-	}
+// 	if down.To != 0 {
+// 		toFile = down.To
+// 	}
+// 	for i := filesLength - 1; i >= 0; i-- {
+// 		file := files[i]
+// 		regex := regexp.MustCompile(`^(\d+)_`)
+// 		version := regex.FindStringSubmatch(filepath.Base(file))
+// 		if len(version) > 0 {
+// 			v, _ := strconv.Atoi(version[1])
+// 			if v <= fromFile && v > toFile {
+// 				paths[v] = file
+// 			}
+// 		}
+// 	}
 
-	return paths
-}
+// 	return paths
+// }

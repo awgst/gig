@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/awgst/gig/cmd/migrate"
 	content "github.com/awgst/gig/template/migration"
 
 	"github.com/awgst/gig/pkg"
@@ -27,7 +26,6 @@ type MigrationOptions struct {
 }
 
 var migration MigrationOptions
-var m *migrate.Migrate
 
 // MigrationCommand is the command to generate a new migration
 var MigrationCommand = &cobra.Command{
