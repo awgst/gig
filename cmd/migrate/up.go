@@ -2,15 +2,15 @@
 package migrate
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 
 	"github.com/awgst/gig/pkg/database"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -51,18 +51,22 @@ func runMigrateUpCommand(cmd *cobra.Command, args []string) {
 	}
 
 	// Get driver and dsn
-	driver, dbDsn := getDriverAndDsn()
+	_, dbDsn := getDriverAndDsn()
 	if up.Connection != "" {
 		dbDsn = up.Connection
 	}
-	m := NewMigrate(database.ConnectSql(driver, dbDsn))
-	defer m.DB.Close()
 
-	// Get map of all migrations file in the path
-	paths := getPaths(path)
+	// Create migrate instance
+	m, err := migrate.New(
+		fmt.Sprintf("file://%v", path),
+		dbDsn,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Up migrations
-	if err := m.Up(context.Background(), paths); err != nil {
+	// Migrate up
+	if err := m.Up(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -93,32 +97,32 @@ func getDriverAndDsn() (string, string) {
 }
 
 // getPaths returns the paths of the migrations
-func getPaths(path string) map[int]string {
-	toFile := 0
-	paths := map[int]string{}
+// func getPaths(path string) map[int]string {
+// 	toFile := 0
+// 	paths := map[int]string{}
 
-	files, _ := filepath.Glob(filepath.Join(path, "*.up.sql"))
-	filesLength := len(files)
-	lastFile := files[filesLength-1]
-	regex := regexp.MustCompile(`^(\d+)_`)
-	version := regex.FindStringSubmatch(filepath.Base(lastFile))
-	if len(version) > 0 {
-		toFile, _ = strconv.Atoi(version[1])
-	}
-	if up.To != 0 {
-		toFile = up.To
-	}
-	for i := 0; i < filesLength; i++ {
-		file := files[i]
-		regex := regexp.MustCompile(`^(\d+)_`)
-		version := regex.FindStringSubmatch(filepath.Base(file))
-		if len(version) > 0 {
-			v, _ := strconv.Atoi(version[1])
-			if v >= up.From && v <= toFile {
-				paths[v] = file
-			}
-		}
-	}
+// 	files, _ := filepath.Glob(filepath.Join(path, "*.up.sql"))
+// 	filesLength := len(files)
+// 	lastFile := files[filesLength-1]
+// 	regex := regexp.MustCompile(`^(\d+)_`)
+// 	version := regex.FindStringSubmatch(filepath.Base(lastFile))
+// 	if len(version) > 0 {
+// 		toFile, _ = strconv.Atoi(version[1])
+// 	}
+// 	if up.To != 0 {
+// 		toFile = up.To
+// 	}
+// 	for i := 0; i < filesLength; i++ {
+// 		file := files[i]
+// 		regex := regexp.MustCompile(`^(\d+)_`)
+// 		version := regex.FindStringSubmatch(filepath.Base(file))
+// 		if len(version) > 0 {
+// 			v, _ := strconv.Atoi(version[1])
+// 			if v >= up.From && v <= toFile {
+// 				paths[v] = file
+// 			}
+// 		}
+// 	}
 
-	return paths
-}
+// 	return paths
+// }

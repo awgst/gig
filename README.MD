@@ -146,7 +146,7 @@ gig up
 ```
 
 # migrate
-Run a simple database migration
+Run a simple database migration. Under the hood it used [golang-migrate/migrate](https://github.com/golang-migrate/migrate) for managing database migration
 ```bash
 gig migrate <command>
 ```
