@@ -23,6 +23,6 @@ func ConnectSql(driver, dbDsn string) *sql.DB {
 func GetDsn(driver, host, port, username, password, db string) string {
 	return map[string]string{
 		"mysql":    fmt.Sprintf("mysql://%s:%s@tcp(%s:%s)/%s", username, password, host, port, db),
-		"postgres": fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=enable", username, password, host, port, db),
+		"postgres": fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", username, password, host, port, db),
 	}[driver]
 }
